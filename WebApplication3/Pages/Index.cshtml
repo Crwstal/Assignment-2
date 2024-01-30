@@ -1,0 +1,36 @@
+﻿@page
+@model IndexModel
+@using Microsoft.AspNetCore.Identity;
+@using Microsoft.AspNetCore.DataProtection;
+@using WebApplication3.Model;
+@inject SignInManager<ApplicationUser> SignInManager; 
+@inject IHttpContextAccessor contxt;
+@{
+    ViewData["Title"] = "Home page";
+    var usernow = await SignInManager.UserManager.GetUserAsync(User);
+    var Encrypt = DataProtectionProvider.Create("EncryptData");
+    var protector = Encrypt.CreateProtector("MySecretKey");
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+        
+    @if (usernow != null)
+    {
+        <p>Full Name: @usernow.FullName</p>
+        <p>Credit Card: @protector.Unprotect(usernow.CreditCardNo)</p>
+        <p>Gender: @usernow.Gender</p>
+        <p>Mobile Number: @usernow.MobileNo</p>
+        <p>Delivery Address: @usernow.DeliveryAddress</p>
+        <p>Email: @usernow.Email</p>        
+       @*  <p>Photo: @usernow.Photo</p> *@
+        <p>About Me: @usernow.AboutMe</p>
+        
+    }
+    else
+    {
+        <p>User not authenticated or user data not available.</p>
+    }
+
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
