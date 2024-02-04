@@ -8,8 +8,8 @@ public class ApplicationUser : IdentityUser
 	public string? Gender { get; set; }
 	public string? MobileNo { get; set; }
 	public string? DeliveryAddress { get; set; }
-	[NotMapped]
-	public IFormFile Photo { get; set; }
+
+	public string? PhotoFile { get; set; }
 	public string? AboutMe { get; set; }
     public DateTime? LastLogin { get; set; }
 

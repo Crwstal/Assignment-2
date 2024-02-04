@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - WebApplication3</title>
+    <title>@ViewData["Title"] - Fresh Farm Market</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
@@ -33,9 +33,13 @@
                             </ul>
                             <ul class="navbar-nav d-flex justify-content-end">
                                 <li class="nav-item">
+                                    <a class="btn btn-primary" asp-area="" asp-page="/ChangePassword">Change Password</a>
+                                </li>
+                                <li class="nav-item">
                                     <a class="btn btn-primary" asp-area="" asp-page="/Logout">Logout</a>
                                 </li>
                             </ul>
+                            
                         }
                         else
                         {
@@ -62,7 +66,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2022 - WebApplication3 - <a asp-area="" asp-page="/Privacy">Privacy</a>
+            &copy; 2024 - Fresh Farm Market - <a asp-area="" asp-page="/Privacy">Privacy</a>
         </div>
     </footer>
 

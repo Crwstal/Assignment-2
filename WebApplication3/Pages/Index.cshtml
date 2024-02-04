@@ -3,13 +3,18 @@
 @using Microsoft.AspNetCore.Identity;
 @using Microsoft.AspNetCore.DataProtection;
 @using WebApplication3.Model;
+@using System.Text
 @inject SignInManager<ApplicationUser> SignInManager; 
-@inject IHttpContextAccessor contxt;
+
 @{
+    if (!User.Identity.IsAuthenticated)
+    {
+        Response.Redirect("/Login");
+    }
     ViewData["Title"] = "Home page";
     var usernow = await SignInManager.UserManager.GetUserAsync(User);
-    var Encrypt = DataProtectionProvider.Create("EncryptData");
-    var protector = Encrypt.CreateProtector("MySecretKey");
+    var Decrypt = DataProtectionProvider.Create("EncryptData");
+    var protector = Decrypt.CreateProtector("MySecretKey");
 }
 
 <div class="text-center">
@@ -17,15 +22,18 @@
         
     @if (usernow != null)
     {
-        <p>Full Name: @usernow.FullName</p>
+        <p>Full Name: @Html.Raw(usernow.FullName)</p>
         <p>Credit Card: @protector.Unprotect(usernow.CreditCardNo)</p>
-        <p>Gender: @usernow.Gender</p>
-        <p>Mobile Number: @usernow.MobileNo</p>
-        <p>Delivery Address: @usernow.DeliveryAddress</p>
-        <p>Email: @usernow.Email</p>        
-       @*  <p>Photo: @usernow.Photo</p> *@
-        <p>About Me: @usernow.AboutMe</p>
-        
+        <p>Gender: @Html.Raw(usernow.Gender)</p>
+        <p>Mobile Number: @Html.Raw(usernow.MobileNo)</p>
+        <p>Delivery Address: @Html.Raw(usernow.DeliveryAddress)</p>
+        <p>Email: @usernow.Email</p>
+        <p>About Me: @Html.Raw(usernow.AboutMe)</p>
+        <br />
+        @if (!string.IsNullOrEmpty(@usernow.PhotoFile))
+        {
+            <img src="~/images/@usernow.PhotoFile" alt="User Photo" />
+        }
     }
     else
     {

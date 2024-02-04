@@ -10,7 +10,7 @@
 		<div class="col-sm-12 col-md-12 col-lg-4">
 			<h1 class="mb-3">Register </h1>
 
-			<form method="post">
+			<form method="post" enctype="multipart/form-data">
 				<div asp-validation-summary="All" class="text-danger"></div>
 
 				<div class="mb-3">
@@ -21,13 +21,17 @@
 
 				<div class="mb-3">
 					<label class="form-label" asp-for="RModel.CreditCardNo">Credit Card No</label>
-					<input type="text" asp-for="RModel.CreditCardNo" class="form-control" />
-					<span asp-validation-for="RModel.CreditCardNo" class="text-danger"></span>
+					<input type="text" asp-for="RModel.CreditCardNo" class="form-control" id="creditcard" maxlength="16" onkeyup="validateCreditCard()" />
+					<span id="creditchecker" asp-validation-for="RModel.CreditCardNo" class="text-danger"></span>
 				</div>
 
 				<div class="mb-3">
 					<label class="form-label" asp-for="RModel.Gender">Gender</label>
-					<input type="text" asp-for="RModel.Gender" class="form-control" />
+					<select asp-for="RModel.Gender" class="form-control">
+						<option value="Male">Male</option>
+						<option value="Female">Female</option>
+						<option value="Others">Others</option>
+					</select>
 					<span asp-validation-for="RModel.Gender" class="text-danger"></span>
 				</div>
 
@@ -126,9 +130,27 @@
 			return;
 		}
 
-        document.getElementById("pwdchecker").innerHTML = "";
+        document.getElementById("pwdchecker").innerHTML = "Strong Password";
 
     }
+	function validateCreditCard() {
+		var numericRegex = /[0-9]+/;
+		var creditcard = document.getElementById("creditcard").value;
+
+		if (creditcard.length < 16) {
+			document.getElementById("creditchecker").innerHTML = "Credit Card Must be 16 digit long.";
+			document.getElementById("creditchecker").style.color = "Red";
+			return;
+		}
+
+		if (!numericRegex.test(creditcard)) {
+			document.getElementById("creditchecker").innerHTML = "Credit Card should contain only numeric characters.";
+			document.getElementById("creditchecker").style.color = "Red";
+			return;
+		}
+		document.getElementById("creditchecker").innerHTML = "";
+	}
+
 </script>
 
 

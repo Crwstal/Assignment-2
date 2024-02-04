@@ -1,8 +1,11 @@
 ﻿@page
 @model Assignment_2.Pages.LogoutModel
 @{
+	if (!User.Identity.IsAuthenticated)
+	{
+		Response.Redirect("/Login"); 
+	}
 }
-
 <form method="post">
 	<div class="container mt-5">
 		<div class="row justify-content-center">

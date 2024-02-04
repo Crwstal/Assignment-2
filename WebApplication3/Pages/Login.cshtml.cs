@@ -1,10 +1,10 @@
+using AspNetCore.ReCaptcha;
 using Assignment_2.ViewModels;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System;
-using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using System.Net;
 
 namespace Assignment_2.Pages
 {
@@ -13,26 +13,35 @@ namespace Assignment_2.Pages
         [BindProperty]
         public Login LModel { get; set; }
         private readonly SignInManager<ApplicationUser> signInManager;
-        private readonly IHttpContextAccessor contxt;
-
-        public LoginModel(SignInManager<ApplicationUser> signInManager, IHttpContextAccessor httpContextAccessor)
+        private readonly ILogger<LoginModel> logger;
+        public LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger)
         {
             this.signInManager = signInManager;
-            contxt = httpContextAccessor;
+            this.logger = logger;
         }
 
         public string LockoutMessage { get; set; }
 
         public async Task<IActionResult> OnPostAsync()
-        {
-            if (ModelState.IsValid)
+        {                
+
+            
+
+           if (ModelState.IsValid)
             {
+                if (!ReCaptchaPassed(Request.Form["recaptcha"], logger))
+                {
+                    // ReCaptcha validation failed
+                    logger.LogWarning("ReCaptcha validation failed.");
+                    return Page();
+                }
                 var user = await signInManager.UserManager.FindByEmailAsync(LModel.Email);
 
                 if (user != null)
                 {
-                    // Check if the provided session identifier matches the stored one
-                     if (user.IsLoggedOn)
+   
+
+                    if (user.IsLoggedOn)
                     {
                         LockoutMessage = "User is already logged in.";
                         return Page();
@@ -43,27 +52,23 @@ namespace Assignment_2.Pages
 
                     if (result.Succeeded)
                     {
-                        // Set email in session
                         HttpContext.Session.SetString("LoggedIn", LModel.Email);
 
-                        // Generate a unique identifier (guid) for AuthToken
                         string guid = Guid.NewGuid().ToString();
 
-                        // Set AuthToken in session
                         HttpContext.Session.SetString("AuthToken", guid);
 
-                        // Set AuthToken as a cookie
                         Response.Cookies.Append("AuthToken", guid, new CookieOptions
                         {
                             HttpOnly = true,
-                            Secure = true, // Make sure to set this to true in a production environment if using HTTPS
-                            SameSite = SameSiteMode.None // Adjust based on your application's requirements
+                            Secure = true, 
+                            SameSite = SameSiteMode.None 
                         });
 
-                        // Update LastLogin
                         TimeZoneInfo SST = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
                         user.LastLogin = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, SST);
-                        user.IsLoggedOn = true;// Update session identifier
+
+						user.IsLoggedOn = true;
                         await signInManager.UserManager.UpdateAsync(user);
 
                         return RedirectToPage("Index");
@@ -71,7 +76,14 @@ namespace Assignment_2.Pages
 
                     if (result.IsLockedOut)
                     {
-                        LockoutMessage = "Account is locked out. Please try again later.";
+                        DateTimeOffset? lockoutEnd = await signInManager.UserManager.GetLockoutEndDateAsync(user);
+
+                        if (lockoutEnd.HasValue && lockoutEnd > DateTimeOffset.UtcNow)
+                        {
+                            TimeSpan remainingTime = lockoutEnd.Value - DateTimeOffset.UtcNow;
+
+                            LockoutMessage = $"Account is locked out. Please try again after {remainingTime.TotalSeconds:F0} seconds.";
+                        }
                         return Page();
                     }
                     else
@@ -83,5 +95,34 @@ namespace Assignment_2.Pages
 
             return Page();
         }
+        public static bool ReCaptchaPassed(string gRecaptchaResponse, ILogger<LoginModel> logger)
+        {
+
+            using (var httpClient = new HttpClient())
+            {
+
+                var res = httpClient.GetAsync($"https://www.google.com/recaptcha/api/siteverify?secret=6Le5qGQpAAAAABsVPihyfJKtIdMTp_0HlvvzUwB3&response={gRecaptchaResponse}").Result;
+
+                if (res.StatusCode != HttpStatusCode.OK)
+                {
+                    logger.LogError("ReCaptcha verification request failed.");
+                    return false;
+                }
+
+                string JSONres = res.Content.ReadAsStringAsync().Result;
+                dynamic JSONdata = JObject.Parse(JSONres);
+
+                logger.LogInformation($"ReCaptcha Response: {JSONres}");
+                logger.LogInformation($"ReCaptcha TokenSDSD: {gRecaptchaResponse}");
+                logger.LogInformation($"ReCaptcha Verification Result: {JSONdata.success}");
+
+                // Check if ReCaptcha was successful
+                return JSONdata.success;
+            }
+        }
+
     }
 }
+
+
+    

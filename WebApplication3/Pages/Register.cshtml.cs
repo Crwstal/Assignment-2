@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.IO;
+using System.Text;
+using System.Web;
 
 namespace WebApplication3.Pages
 {
@@ -12,18 +15,21 @@ namespace WebApplication3.Pages
         public Register RModel { get; set; }
 
         private readonly UserManager<ApplicationUser> userManager;
-        private readonly SignInManager<ApplicationUser> signInManager;
-        private readonly IDataProtectionProvider dataProtectionProvider;
+        private readonly IWebHostEnvironment webHostEnvironment;
 
-        public RegisterModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IDataProtectionProvider dataProtectionProvider)
+        public RegisterModel(UserManager<ApplicationUser> userManager, IWebHostEnvironment webHostEnvironment)
         {
             this.userManager = userManager;
-            this.signInManager = signInManager;
-            this.dataProtectionProvider = dataProtectionProvider;
+            this.webHostEnvironment = webHostEnvironment;
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
+            if (string.IsNullOrEmpty(RModel.Email))
+            {
+                ModelState.AddModelError(nameof(RModel.Email), "Email is required.");
+                return Page();
+            }
             var existingUser = await userManager.FindByEmailAsync(RModel.Email);
             if (existingUser != null)
             {
@@ -33,25 +39,44 @@ namespace WebApplication3.Pages
 
             if (ModelState.IsValid)
             {
+                if (RModel.Photo != null)
+                {
+                    string[] allowedExtensions = { ".jpg", ".jpeg" };
+                    string fileExtension = Path.GetExtension(RModel.Photo.FileName);
+
+                    // Check if the file extension is not allowed
+                    if (!allowedExtensions.Contains(fileExtension.ToLower()))
+                    {
+                        ModelState.AddModelError("RModel.Photo", "Only .jpg or .jpeg files are allowed.");
+                        return Page();
+                    }
+
+                    // Rest of the code for file upload
+                    string folder = "images/";
+                    folder += RModel.Photo.FileName;
+                    string serverfolder = Path.Combine(webHostEnvironment.WebRootPath, folder);
+
+                    await RModel.Photo.CopyToAsync(new FileStream(serverfolder, FileMode.Create));
+                }
                 var Encrypt = DataProtectionProvider.Create("EncryptData");
                 var protector = Encrypt.CreateProtector("MySecretKey");
 
-                var user = new ApplicationUser()
-                {
-                    UserName = RModel.Email,
-                    Email = RModel.Email,
-                    FullName = RModel.FullName,
-                    CreditCardNo = protector.Protect(RModel.CreditCardNo),
-                    Gender = RModel.Gender,
-                    MobileNo = RModel.MobileNo,
-                    DeliveryAddress = RModel.DeliveryAddress,
-                    Photo = RModel.Photo,
-                    AboutMe = RModel.AboutMe,
-                    LastLogin = RModel.LastLogin,
-                    IsLoggedOn = false
-                };
+				var user = new ApplicationUser()
+				{
+					UserName = RModel.Email,
+					Email = RModel.Email,
+					FullName = HtmlEncode(RModel.FullName),
+					CreditCardNo = protector.Protect(RModel.CreditCardNo),
+					Gender = HtmlEncode(RModel.Gender),
+					MobileNo = HtmlEncode(RModel.MobileNo),
+					DeliveryAddress = HtmlEncode(RModel.DeliveryAddress),
+					AboutMe = HtmlEncode(RModel.AboutMe),
+					PhotoFile = HtmlEncode(RModel.Photo.FileName),
+					LastLogin = RModel.LastLogin,
+					IsLoggedOn = false
+				};
 
-                var result = await userManager.CreateAsync(user, RModel.Password);
+				var result = await userManager.CreateAsync(user, RModel.Password);
 
                 if (result.Succeeded)
                 {
@@ -67,5 +92,10 @@ namespace WebApplication3.Pages
 
             return Page();
         }
-    }
+		private string HtmlEncode(string data)
+		{
+			return HttpUtility.HtmlEncode(data);
+		}
+
+	}
 }

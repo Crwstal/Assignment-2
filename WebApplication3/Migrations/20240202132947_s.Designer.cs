@@ -12,7 +12,7 @@ using WebApplication3.Model;
 namespace Assignment2.Migrations
 {
     [DbContext(typeof(AuthDbContext))]
-    [Migration("20240130163747_s")]
+    [Migration("20240202132947_s")]
     partial class s
     {
         /// <inheritdoc />
