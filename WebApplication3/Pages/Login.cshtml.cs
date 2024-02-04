@@ -113,7 +113,6 @@ namespace Assignment_2.Pages
                 dynamic JSONdata = JObject.Parse(JSONres);
 
                 logger.LogInformation($"ReCaptcha Response: {JSONres}");
-                logger.LogInformation($"ReCaptcha TokenSDSD: {gRecaptchaResponse}");
                 logger.LogInformation($"ReCaptcha Verification Result: {JSONdata.success}");
 
                 // Check if ReCaptcha was successful
