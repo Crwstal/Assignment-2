@@ -7,8 +7,8 @@ namespace Assignment_2.ViewModels
 
 		[Required(ErrorMessage="Full Name required.")]
 		[DataType(DataType.Text)]
-		[RegularExpression(@"^[a-zA-Z ]*$", ErrorMessage = "Full Name only allows alphabetical characters.")]
-		public string? FullName { get; set; }
+        [RegularExpression(@"^[a-zA-Z ]+$", ErrorMessage = "Full Name only allows alphabetical characters.")]
+        public string? FullName { get; set; }
 
 		[Required(ErrorMessage = "Credit Card required.")]
 		[DataType(DataType.CreditCard)]
@@ -26,7 +26,7 @@ namespace Assignment_2.ViewModels
 
 		[Required(ErrorMessage = "Delivery Address required.")]
 		[DataType(DataType.Text)]
-		[RegularExpression(@"^[a-zA-Z0-9 ]*$", ErrorMessage = "Delivery Address only allows alphanumeric characters.")]
+		[RegularExpression(@"^[a-zA-Z0-9 ]+$", ErrorMessage = "Delivery Address only allows alphanumeric characters.")]
 		public string? DeliveryAddress { get; set; }
 
 		[Required(ErrorMessage = "Email is required.")]
@@ -37,9 +37,9 @@ namespace Assignment_2.ViewModels
 		[Required(ErrorMessage = "Password is required.")]
 		[DataType(DataType.Password)]
 		[MinLength(12, ErrorMessage = "Password must be at least 12 characters long.")]
-		[RegularExpression(@"(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{12,}", 
-			ErrorMessage = "Password should include lower-case, upper-case, numbers, and special characters.")]
-		public string? Password { get; set; }
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{12,}$",
+			 ErrorMessage = "Password should include lower-case, upper-case, numbers, and special characters.")]
+        public string? Password { get; set; }
 
 		[Required(ErrorMessage = "Confirm Password required.")]
 		[DataType(DataType.Password)]
@@ -52,7 +52,8 @@ namespace Assignment_2.ViewModels
 		public IFormFile? Photo { get; set; }
 
 		[DataType(DataType.MultilineText)]
-		[Required(ErrorMessage = "About Me required.")]
+        [MaxLength(500, ErrorMessage = "About Me should not exceed 500 characters.")]
+        [Required(ErrorMessage = "About Me required.")]
 		public string? AboutMe { get; set; }
 
 		[DataType(DataType.DateTime)]
